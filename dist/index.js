@@ -26,7 +26,10 @@ function exec(cmd, cfg) {
     if (cfg === undefined) {
         return function (cfg) { return exec(cmd, cfg); };
     }
-    var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd;
+    var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd, retry = _a.retry;
+    if (retry) {
+        return function (cfg) { return execRetry(cmd, cfg); };
+    }
     var args = toArray(cmd);
     var cp = child_process_1.spawn(path, args, { cwd: cwd });
     var stdout = "";
@@ -59,6 +62,29 @@ function exec(cmd, cfg) {
     });
 }
 exports.exec = exec;
+/**
+ * Retries execution a number of times before returning a result
+ * @returns a Promise to the `stdout` string result
+ */
+function execRetry(cmd, cfg) {
+    var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd, _b = _a.retry, retry = _b === void 0 ? 0 : _b;
+    var attempt = 1, regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi');
+    while (attempt <= retry) {
+        return function (cfg) { return exec(cmd, cfg)
+            .then(function (stdout) {
+            return stdout;
+        })
+            .catch(function (error) {
+            if (attempt >= retry || !error.match(regex))
+                return error;
+            setTimeout(function () {
+                attempt++;
+                return function (cfg) { return exec(cmd, cfg); };
+            }, 1000 * attempt * 1.5);
+        }); };
+    }
+}
+exports.execRetry = execRetry;
 /**
  * A Terraform class bound to a configuration, providing methods for all commands.
  */

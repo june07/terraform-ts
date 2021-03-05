@@ -1,6 +1,7 @@
 export interface IConfig {
     path: string;
     cwd: string;
+    retry?: number;
 }
 /**
  * Construct a config object for calls to `exec`
@@ -17,6 +18,11 @@ export declare function mapExec(commands: Command[], cfg: IConfig): Promise<stri
  */
 export declare function exec(cmd: Command, cfg: undefined): (cfg: IConfig) => Promise<string>;
 export declare function exec(cmd: Command, cfg: IConfig): Promise<string>;
+/**
+ * Retries execution a number of times before returning a result
+ * @returns a Promise to the `stdout` string result
+ */
+export declare function execRetry(cmd: Command, cfg: IConfig | undefined): ((cfg: IConfig) => Promise<any>) | undefined;
 /**
  * A Terraform class bound to a configuration, providing methods for all commands.
  */

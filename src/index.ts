@@ -4,6 +4,7 @@ import { spawn } from 'child_process'
 export interface IConfig {
     path: string
     cwd: string
+    retry?: number
 }
 
 /**
@@ -36,7 +37,9 @@ export function exec(cmd: Command, cfg: IConfig): Promise<string>
 export function exec(cmd: Command, cfg: IConfig | undefined) {
     if (cfg === undefined) { return (cfg: IConfig) => exec(cmd, cfg) }
 
-    const { path, cwd } = Config(cfg)
+    const { path, cwd, retry } = Config(cfg)
+    if (retry) { return (cfg: IConfig) => execRetry(cmd, cfg) }
+
     const args = toArray(cmd)
     const cp = spawn(path, args, { cwd })
 
@@ -72,6 +75,32 @@ export function exec(cmd: Command, cfg: IConfig | undefined) {
     })
 
 }
+
+/**
+ * Retries execution a number of times before returning a result
+ * @returns a Promise to the `stdout` string result
+ */ 
+export function execRetry(cmd: Command, cfg: IConfig | undefined) {
+    const { path, cwd, retry = 0 } = Config(cfg)
+
+    let attempt = 1,
+        regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi')
+
+    while (attempt <= retry) {
+        return (cfg: IConfig) => exec(cmd, cfg)
+        .then(stdout => {
+            return stdout
+        })
+        .catch(error => {
+            if (attempt >= retry || !error.match(regex)) return error
+            
+            setTimeout(() => {
+                attempt++
+                return (cfg: IConfig) => exec(cmd, cfg)
+            }, 1000 * attempt * 1.5)
+        })
+    }
+} 
 
 /**
  * A Terraform class bound to a configuration, providing methods for all commands.
