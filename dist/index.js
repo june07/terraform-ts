@@ -1,4 +1,39 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [0, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // See: https://www.terraform.io/docs/commands/
 var child_process_1 = require("child_process");
@@ -10,6 +45,7 @@ exports.Config = function (props) {
     return ({
         cwd: props.cwd || process.cwd(),
         path: props.path || "terraform",
+        retry: props.retry
     });
 };
 function mapExec(commands, cfg) {
@@ -27,9 +63,8 @@ function exec(cmd, cfg) {
         return function (cfg) { return exec(cmd, cfg); };
     }
     var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd, retry = _a.retry;
-    if (retry) {
-        return function (cfg) { return execRetry(cmd, cfg); };
-    }
+    if (retry)
+        return execRetry(cmd, cfg);
     var args = toArray(cmd);
     var cp = child_process_1.spawn(path, args, { cwd: cwd });
     var stdout = "";
@@ -67,22 +102,39 @@ exports.exec = exec;
  * @returns a Promise to the `stdout` string result
  */
 function execRetry(cmd, cfg) {
+    var _this = this;
     var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd, _b = _a.retry, retry = _b === void 0 ? 0 : _b;
-    var attempt = 1, regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi');
-    while (attempt <= retry) {
-        return function (cfg) { return exec(cmd, cfg)
-            .then(function (stdout) {
-            return stdout;
-        })
-            .catch(function (error) {
-            if (attempt >= retry || !error.match(regex))
-                return error;
-            setTimeout(function () {
-                attempt++;
-                return function (cfg) { return exec(cmd, cfg); };
-            }, 1000 * attempt * 1.5);
-        }); };
-    }
+    var attempt, regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi');
+    return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    attempt = 1;
+                    _a.label = 1;
+                case 1:
+                    if (!(attempt <= retry)) return [3 /*break*/, 4];
+                    console.log("attempt " + attempt);
+                    return [4 /*yield*/, exec(cmd, { path: cfg.path, cwd: cfg.cwd })
+                            .then(function (stdout) {
+                            resolve(stdout);
+                            attempt = retry + 1;
+                        })
+                            .catch(function (error) {
+                            if (attempt >= retry || !error.match(regex)) {
+                                reject(error);
+                                attempt = retry + 1;
+                            }
+                            setTimeout(function () {
+                            }, 1000 * attempt * 1.5);
+                        })];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    attempt++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); });
 }
 exports.execRetry = execRetry;
 /**

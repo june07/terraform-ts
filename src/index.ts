@@ -13,6 +13,7 @@ export interface IConfig {
 export const Config = (props: Partial<IConfig> = {}): IConfig => ({
     cwd: props.cwd || process.cwd(),
     path: props.path || "terraform",
+    retry: props.retry
 })
 
 /**
@@ -38,7 +39,7 @@ export function exec(cmd: Command, cfg: IConfig | undefined) {
     if (cfg === undefined) { return (cfg: IConfig) => exec(cmd, cfg) }
 
     const { path, cwd, retry } = Config(cfg)
-    if (retry) { return (cfg: IConfig) => execRetry(cmd, cfg) }
+    if (retry) return execRetry(cmd, cfg)
 
     const args = toArray(cmd)
     const cp = spawn(path, args, { cwd })
@@ -80,26 +81,31 @@ export function exec(cmd: Command, cfg: IConfig | undefined) {
  * Retries execution a number of times before returning a result
  * @returns a Promise to the `stdout` string result
  */ 
-export function execRetry(cmd: Command, cfg: IConfig | undefined) {
+export function execRetry(cmd: Command, cfg: IConfig) {
     const { path, cwd, retry = 0 } = Config(cfg)
 
-    let attempt = 1,
+    let attempt:number,
         regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi')
 
-    while (attempt <= retry) {
-        return (cfg: IConfig) => exec(cmd, cfg)
-        .then(stdout => {
-            return stdout
-        })
-        .catch(error => {
-            if (attempt >= retry || !error.match(regex)) return error
-            
-            setTimeout(() => {
-                attempt++
-                return (cfg: IConfig) => exec(cmd, cfg)
-            }, 1000 * attempt * 1.5)
-        })
-    }
+    return new Promise(async (resolve, reject) => {
+        for (attempt = 1; attempt <= retry; attempt++) {
+            console.log(`attempt ${attempt}`)
+            return await exec(cmd, { path: cfg.path, cwd: cfg.cwd })
+            .then(stdout => {
+                resolve(stdout)
+                attempt = retry+1
+            })
+            .catch(error => {
+                if (attempt >= retry || !error.match(regex)) {
+                    reject(error)
+                    attempt = retry+1
+                }
+                
+                setTimeout(() => {
+                }, 1000 * attempt * 1.5)
+            })
+        }
+    })
 } 
 
 /**
