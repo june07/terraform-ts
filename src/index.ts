@@ -93,12 +93,12 @@ export function execRetry(cmd: Command, cfg: IConfig) {
             return await exec(cmd, { path: cfg.path, cwd: cfg.cwd })
             .then(stdout => {
                 resolve(stdout)
-                attempt = retry+1
+                break
             })
             .catch(error => {
                 if (attempt >= retry || !error.match(regex)) {
                     reject(error)
-                    attempt = retry+1
+                    break
                 }
                 
                 setTimeout(() => {

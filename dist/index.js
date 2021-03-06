@@ -117,12 +117,12 @@ function execRetry(cmd, cfg) {
                     return [4 /*yield*/, exec(cmd, { path: cfg.path, cwd: cfg.cwd })
                             .then(function (stdout) {
                             resolve(stdout);
-                            attempt = retry + 1;
+                            break;
                         })
                             .catch(function (error) {
                             if (attempt >= retry || !error.match(regex)) {
                                 reject(error);
-                                attempt = retry + 1;
+                                break;
                             }
                             setTimeout(function () {
                             }, 1000 * attempt * 1.5);
