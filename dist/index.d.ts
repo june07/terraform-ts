@@ -22,7 +22,7 @@ export declare function exec(cmd: Command, cfg: IConfig): Promise<string>;
  * Retries execution a number of times before returning a result
  * @returns a Promise to the `stdout` string result
  */
-export declare function execRetry(cmd: Command, cfg: IConfig): Promise<{}>;
+export declare function execRetry(cmd: Command, cfg: IConfig, attempt?: number): Promise<{}> | undefined;
 /**
  * A Terraform class bound to a configuration, providing methods for all commands.
  */

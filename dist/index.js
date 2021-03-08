@@ -101,40 +101,34 @@ exports.exec = exec;
  * Retries execution a number of times before returning a result
  * @returns a Promise to the `stdout` string result
  */
-function execRetry(cmd, cfg) {
+function execRetry(cmd, cfg, attempt) {
     var _this = this;
+    if (attempt === void 0) { attempt = 1; }
     var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd, _b = _a.retry, retry = _b === void 0 ? 0 : _b;
-    var attempt, regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi');
-    return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    attempt = 1;
-                    _a.label = 1;
-                case 1:
-                    if (!(attempt <= retry)) return [3 /*break*/, 4];
+    var regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi');
+    if (attempt <= retry) {
+        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                if (attempt > 1)
                     console.log("attempt " + attempt);
-                    return [4 /*yield*/, exec(cmd, { path: cfg.path, cwd: cfg.cwd })
-                            .then(function (stdout) {
-                            resolve(stdout);
-                            break;
-                        })
-                            .catch(function (error) {
-                            if (attempt >= retry || !error.match(regex)) {
-                                reject(error);
-                                break;
-                            }
-                            setTimeout(function () {
-                            }, 1000 * attempt * 1.5);
-                        })];
-                case 2: return [2 /*return*/, _a.sent()];
-                case 3:
-                    attempt++;
-                    return [3 /*break*/, 1];
-                case 4: return [2 /*return*/];
-            }
-        });
-    }); });
+                setTimeout(function () {
+                    exec(cmd, { path: cfg.path, cwd: cfg.cwd })
+                        .then(function (stdout) {
+                        resolve(stdout);
+                    })
+                        .catch(function (error) {
+                        if (attempt >= retry || !error.match(regex)) {
+                            reject(error);
+                        }
+                        else {
+                            execRetry(cmd, cfg, attempt++);
+                        }
+                    });
+                }, 1000 * attempt * 1.5);
+                return [2 /*return*/];
+            });
+        }); });
+    }
 }
 exports.execRetry = execRetry;
 /**

@@ -81,31 +81,30 @@ export function exec(cmd: Command, cfg: IConfig | undefined) {
  * Retries execution a number of times before returning a result
  * @returns a Promise to the `stdout` string result
  */ 
-export function execRetry(cmd: Command, cfg: IConfig) {
+export function execRetry(cmd: Command, cfg: IConfig, attempt: number = 1) {
     const { path, cwd, retry = 0 } = Config(cfg)
 
-    let attempt:number,
-        regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi')
+    let regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi')
 
-    return new Promise(async (resolve, reject) => {
-        for (attempt = 1; attempt <= retry; attempt++) {
-            console.log(`attempt ${attempt}`)
-            return await exec(cmd, { path: cfg.path, cwd: cfg.cwd })
-            .then(stdout => {
-                resolve(stdout)
-                break
-            })
-            .catch(error => {
-                if (attempt >= retry || !error.match(regex)) {
-                    reject(error)
-                    break
-                }
-                
-                setTimeout(() => {
-                }, 1000 * attempt * 1.5)
-            })
-        }
-    })
+    if (attempt <= retry) {
+        return new Promise(async (resolve, reject) => {
+            if (attempt > 1) console.log(`attempt ${attempt}`)
+            
+            setTimeout(() => {
+                exec(cmd, { path: cfg.path, cwd: cfg.cwd })
+                .then(stdout => {
+                    resolve(stdout)
+                })
+                .catch(error => {
+                    if (attempt >= retry || !error.match(regex)) {
+                        reject(error)
+                    } else {
+                        execRetry(cmd, cfg, attempt++)
+                    }
+                })
+            }, 1000 * attempt * 1.5)
+        })
+    }
 } 
 
 /**
