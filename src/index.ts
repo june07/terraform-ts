@@ -87,19 +87,20 @@ export function execRetry(cmd: Command, cfg: IConfig, attempt: number = 1) {
     let regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi')
 
     if (attempt <= retry) {
-        return new Promise(async (resolve, reject) => {
-            if (attempt > 1) console.log(`attempt ${attempt}`)
+        return new Promise((resolve, reject) => {
+            if (attempt > 1 && process.env.NODE_ENV !== 'production') console.log(`attempt ${attempt}, waiting ${attempt * 1.5} seconds...`)
             
             setTimeout(() => {
                 exec(cmd, { path: cfg.path, cwd: cfg.cwd })
                 .then(stdout => {
                     resolve(stdout)
                 })
-                .catch(error => {
+                .catch(async error => {
                     if (attempt >= retry || !error.match(regex)) {
                         reject(error)
                     } else {
-                        execRetry(cmd, cfg, attempt++)
+                        attempt++
+                        resolve(execRetry(cmd, cfg, attempt))
                     }
                 })
             }, 1000 * attempt * 1.5)

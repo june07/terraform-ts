@@ -107,27 +107,28 @@ function execRetry(cmd, cfg, attempt) {
     var _a = exports.Config(cfg), path = _a.path, cwd = _a.cwd, _b = _a.retry, retry = _b === void 0 ? 0 : _b;
     var regex = new RegExp(/Error\slocking\sstate|state\slock/, 'gi');
     if (attempt <= retry) {
-        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                if (attempt > 1)
-                    console.log("attempt " + attempt);
-                setTimeout(function () {
-                    exec(cmd, { path: cfg.path, cwd: cfg.cwd })
-                        .then(function (stdout) {
-                        resolve(stdout);
-                    })
-                        .catch(function (error) {
+        return new Promise(function (resolve, reject) {
+            if (attempt > 1 && process.env.NODE_ENV !== 'production')
+                console.log("attempt " + attempt + ", waiting " + attempt * 1.5 + " seconds...");
+            setTimeout(function () {
+                exec(cmd, { path: cfg.path, cwd: cfg.cwd })
+                    .then(function (stdout) {
+                    resolve(stdout);
+                })
+                    .catch(function (error) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
                         if (attempt >= retry || !error.match(regex)) {
                             reject(error);
                         }
                         else {
-                            execRetry(cmd, cfg, attempt++);
+                            attempt++;
+                            resolve(execRetry(cmd, cfg, attempt));
                         }
+                        return [2 /*return*/];
                     });
-                }, 1000 * attempt * 1.5);
-                return [2 /*return*/];
-            });
-        }); });
+                }); });
+            }, 1000 * attempt * 1.5);
+        });
     }
 }
 exports.execRetry = execRetry;
