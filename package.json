@@ -14,7 +14,7 @@
     "main": "dist/index.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bocodigitalmedia/terraform-ts.git"
+        "url": "https://github.com/june07/terraform-ts.git"
     },
     "scripts": {
         "build": "rimraf dist docs/api && tsc && typedoc --theme default --target ES6 --out docs/api src/",
