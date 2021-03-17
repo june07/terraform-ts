@@ -117,7 +117,7 @@ function execRetry(cmd, cfg, attempt) {
                 })
                     .catch(function (error) { return __awaiter(_this, void 0, void 0, function () {
                     return __generator(this, function (_a) {
-                        if (attempt >= retry || !error.match(regex)) {
+                        if (attempt >= retry || typeof error !== 'string' || !error.match(regex)) {
                             reject(error);
                         }
                         else {

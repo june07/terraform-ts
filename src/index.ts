@@ -96,7 +96,7 @@ export function execRetry(cmd: Command, cfg: IConfig, attempt: number = 1) {
                     resolve(stdout)
                 })
                 .catch(async error => {
-                    if (attempt >= retry || !error.match(regex)) {
+                    if (attempt >= retry || typeof error !== 'string' || !error.match(regex)) {
                         reject(error)
                     } else {
                         attempt++

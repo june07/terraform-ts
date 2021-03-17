@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>typescript-ts</title>
+	<title>@667/terraform-ts</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="assets/css/main.css">
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">typescript-ts</a>
+					<a href="index.html" class="title">@667/terraform-ts</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -56,7 +56,7 @@
 					<a href="globals.html">Globals</a>
 				</li>
 			</ul>
-			<h1> typescript-ts</h1>
+			<h1> @667/terraform-ts</h1>
 		</div>
 	</div>
 </header>
@@ -64,15 +64,15 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
-				<h1 id="terraform-js">terraform-js</h1>
+				<h1 id="terraform-ts">terraform-ts</h1>
 				<p>A Javascript wrapper for terraform CLI.</p>
 				<p>Supports all commands with the exception of <code>terraform console</code>.</p>
 				<h2 id="installation">Installation</h2>
-				<pre><code>npm <span class="hljs-keyword">install</span> terraform-js
+				<pre><code>npm <span class="hljs-keyword">install</span> terraform-ts
 </code></pre><h2 id="usage">Usage</h2>
 				<p>See the generated <a href="https://bocodigitalmedia.github.io/terraform-ts/api">API Docs</a> for detailed documentation.</p>
 				<h3 id="using-the-terraform-class">Using the Terraform Class</h3>
-				<pre><code class="lang-ts"><span class="hljs-keyword">import</span> { Terraform, Parse } <span class="hljs-keyword">from</span> <span class="hljs-string">"terraform-js"</span>
+				<pre><code class="lang-ts"><span class="hljs-keyword">import</span> { Terraform, Parse } <span class="hljs-keyword">from</span> <span class="hljs-string">"terraform-ts"</span>
 
 <span class="hljs-keyword">const</span> tf = <span class="hljs-keyword">new</span> Terraform({
     path: <span class="hljs-string">"/path/to/terraform"</span>,
@@ -86,7 +86,7 @@ tf.workspaceList().then(<span class="hljs-built_in">console</span>.log)
 <span class="hljs-comment">//   workspace3</span>
 </code></pre>
 				<h3 id="functional-style">Functional Style</h3>
-				<pre><code class="lang-ts"><span class="hljs-keyword">import</span> { exec, map, Config, WorkspaceList, WorkspaceSelect, WorkspaceNew } <span class="hljs-keyword">from</span> <span class="hljs-string">'terraform-js'</span>
+				<pre><code class="lang-ts"><span class="hljs-keyword">import</span> { exec, map, Config, WorkspaceList, WorkspaceSelect, WorkspaceNew } <span class="hljs-keyword">from</span> <span class="hljs-string">'terraform-ts'</span>
 
 <span class="hljs-keyword">const</span> cfg = Config({ cwd: <span class="hljs-string">"/path/to/project"</span> })
 
